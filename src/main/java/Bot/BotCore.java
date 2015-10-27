@@ -1,50 +1,45 @@
 package Bot;
 
+import graphics.acebotsthree;
 import pircbot.IrcException;
 import pircbot.PircBot;
 
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.net.*;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
-import graphics.acebotsthree;
+import static u.u.*;
 
-import javax.swing.*;
-import javax.swing.Timer;
-
-import static u.u.appendTextPane;
-import static u.u.addHash;
-import static u.u.isBlank;
+import Bot.Queue;
 
 public class BotCore extends PircBot {
 
-    public static HashMap<String, Object> objectMap = new HashMap<String, Object>();
-    public static HashMap<String, Channel> channelMap = new HashMap<String, Channel>();
-    public HashMap<String, Integer> userAccessMap = new HashMap<String, Integer>();
-    public HashMap<String, Integer> channelAccessMap = new HashMap<String, Integer>();
-    public ArrayList<String> modList = new ArrayList<String>();
+    private static HashMap<String, Object> objectMap = new HashMap<>();
+    private static HashMap<String, Channel> channelMap = new HashMap<>();
+    public HashMap<String, Integer> userAccessMap = new HashMap<>();
+    public HashMap<String, Integer> channelAccessMap = new HashMap<>();
+    private ArrayList<String> modList = new ArrayList<>();
     private Queue messageQueue;
-    public static HashMap<String, ArrayList<ActionListener>> alMap = new HashMap<String, ArrayList<ActionListener>>();
+    private static HashMap<String, ArrayList<ActionListener>> alMap = new HashMap<>();
     public final static int OUTPUT_INTERNAL = 0;
     public final static int OUTPUT_CHANNEL = 1;
     private acebotsthree acebotsGUI;
     private boolean isConnected;
     private Color botColor;
 
-    public BotCore() { }
+    public BotCore() {
+    }
 
-    public BotCore(String username, String password, String server, int port, String initChannel)
-    {
+    public BotCore(String username, String password, String server, int port, String initChannel) {
         //setVerbose(true);
 
         /**
@@ -52,39 +47,37 @@ public class BotCore extends PircBot {
          * Events are called by the fire(event) and subscribed to by subscribe(event)
          * Not all events are called, so if one is needed and isn't called properly, raise and issue
          */
-        alMap.put("onLoad", new ArrayList<ActionListener>());
-        alMap.put("onMessage", new ArrayList<ActionListener>());
-        alMap.put("onCommand", new ArrayList<ActionListener>());
-        alMap.put("onBotJoin", new ArrayList<ActionListener>());
-        alMap.put("onBotLeave", new ArrayList<ActionListener>());
-        alMap.put("onUserJoin", new ArrayList<ActionListener>());
-        alMap.put("onUserLeave", new ArrayList<ActionListener>());
-        alMap.put("onFiltered", new ArrayList<ActionListener>());
-        alMap.put("onReload", new ArrayList<ActionListener>());
-        alMap.put("onLogin", new ArrayList<ActionListener>());
-        alMap.put("onInternalMessage", new ArrayList<ActionListener>());
-        alMap.put("onChannelMode", new ArrayList<ActionListener>());
-        alMap.put("onUserMode", new ArrayList<ActionListener>());
-        alMap.put("onPrivateMessage", new ArrayList<ActionListener>());
-        alMap.put("onNotice", new ArrayList<ActionListener>());
-        alMap.put("onVoice", new ArrayList<ActionListener>());
-        alMap.put("onMe", new ArrayList<ActionListener>());
-        alMap.put("onConnect", new ArrayList<ActionListener>());
-        alMap.put("onDisconnect", new ArrayList<ActionListener>());
-        alMap.put("onSubscribe", new ArrayList<ActionListener>());
-        alMap.put("onGameChange", new ArrayList<ActionListener>());
-        alMap.put("onTitleChange", new ArrayList<ActionListener>());
-        alMap.put("onStreamGoesOnline", new ArrayList<ActionListener>());
-        alMap.put("onStreamGoesOffline", new ArrayList<ActionListener>());
-        alMap.put("onServerPing", new ArrayList<ActionListener>());
+        alMap.put("onLoad", new ArrayList<>());
+        alMap.put("onMessage", new ArrayList<>());
+        alMap.put("onCommand", new ArrayList<>());
+        alMap.put("onBotJoin", new ArrayList<>());
+        alMap.put("onBotLeave", new ArrayList<>());
+        alMap.put("onUserJoin", new ArrayList<>());
+        alMap.put("onUserLeave", new ArrayList<>());
+        alMap.put("onFiltered", new ArrayList<>());
+        alMap.put("onReload", new ArrayList<>());
+        alMap.put("onLogin", new ArrayList<>());
+        alMap.put("onInternalMessage", new ArrayList<>());
+        alMap.put("onChannelMode", new ArrayList<>());
+        alMap.put("onUserMode", new ArrayList<>());
+        alMap.put("onPrivateMessage", new ArrayList<>());
+        alMap.put("onNotice", new ArrayList<>());
+        alMap.put("onVoice", new ArrayList<>());
+        alMap.put("onMe", new ArrayList<>());
+        alMap.put("onConnect", new ArrayList<>());
+        alMap.put("onDisconnect", new ArrayList<>());
+        alMap.put("onSubscribe", new ArrayList<>());
+        alMap.put("onGameChange", new ArrayList<>());
+        alMap.put("onTitleChange", new ArrayList<>());
+        alMap.put("onStreamGoesOnline", new ArrayList<>());
+        alMap.put("onStreamGoesOffline", new ArrayList<>());
+        alMap.put("onServerPing", new ArrayList<>());
 
         messageQueue = new Queue(this);
 
 
         loadUsers();
         bootPluginSystem();
-
-        port = 6667;
 
         acebotsGUI = new acebotsthree();
         //acebotsGUI = new Maingui(server, port, username)
@@ -100,14 +93,14 @@ public class BotCore extends PircBot {
     /**
      * Connects the bot to twitch.tv with given parameters
      * Implements the pircbot connect() method.
-     * @param username Username to connect with.
-     * @param password Password to conect with.  In safety, never stored in memory.
-     * @param server Server to connect to.
-     * @param port  Port to connect to the server with.
+     *
+     * @param username    Username to connect with.
+     * @param password    Password to conect with.  In safety, never stored in memory.
+     * @param server      Server to connect to.
+     * @param port        Port to connect to the server with.
      * @param initChannel Initial channels to join, multiples separated by commas.  # not required.
      */
-    private void acebotsConnect(String username, String password, String server, int port, String initChannel)
-    {
+    private void acebotsConnect(String username, String password, String server, int port, String initChannel) {
         setLogin(username);
         setName(username);
         //setUser(username);
@@ -130,7 +123,7 @@ public class BotCore extends PircBot {
         sendRawLine("CAP REQ :twitch.tv/tags");
 
         String[] initChannels = initChannel.split(",");
-        for (String chan:initChannels)
+        for (String chan : initChannels)
             botJoinChannel(addHash(chan));
 
         //sendRawLine("TWITCHCLIENT 3");
@@ -153,7 +146,7 @@ public class BotCore extends PircBot {
     public final static String TRIGGER = "!";
     public final static String QUOTESFILEPATH = "quotes.txt";
     public final static String USERSFILEPATH = "users.txt";
-    public final static String CMDSFILEPATH = "commands.txt";
+    private final static String CMDSFILEPATH = "commands.txt";
     public final static String CUSTOMCMDSFILEPATH = "customcommands.txt";
     public final static String WRSFILEPATH = "WRs.txt";
     public final static String WRLINKSFILEPATH = "wrlinks.txt";
@@ -164,8 +157,7 @@ public class BotCore extends PircBot {
 
 
     //Plugin Components
-    public void subscribe(String event, ActionListener al)
-    {
+    public void subscribe(String event, ActionListener al) {
         try {
             alMap.get(event).add(al);
         } catch (java.lang.NullPointerException e) {
@@ -174,14 +166,13 @@ public class BotCore extends PircBot {
         }
     }
 
-    public void fire(String event, String[] argumentsArray)
-    {
+    public void fire(String event, String[] argumentsArray) {
         //System.out.println("Firing " + event);
         try {
             StringBuilder arguments = new StringBuilder();
-            for (String arg:argumentsArray)
+            for (String arg : argumentsArray)
                 arguments.append(arg + "``");
-            for (ActionListener al:alMap.get(event))
+            for (ActionListener al : alMap.get(event))
                 al.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, arguments.toString().substring(0, Math.max(arguments.length() - 2, 0))));
         } catch (Exception e) {
             System.out.println("Error in event: " + event);
@@ -189,23 +180,20 @@ public class BotCore extends PircBot {
         }
     }
 
-    public void createEvent(String name)
-    {
+    public void createEvent(String name) {
         if (!alMap.containsKey(name))
-            alMap.put(name, new ArrayList<ActionListener>());
+            alMap.put(name, new ArrayList<>());
         else
-            System.out.println("[Plugins] Could not create event " + name + ".");
+            System.out.println("[Plugins] Could not create event " + name + "");
     }
 
-    public void onDisconnect()
-    {
+    public void onDisconnect() {
         fire("onDisconnect", new String[]{});
         isConnected = false;
         System.out.println("I HAVE DISCONNECTED");
         acebotsGUI.setTitle("Acebots III :|: Disconnected");
         Timer reconnectTimer = new Timer(15000, reconnectAL);
-        if (isConnected)
-        {
+        if (isConnected) {
             reconnectTimer.stop();
             return;
         }
@@ -213,16 +201,15 @@ public class BotCore extends PircBot {
         reconnectTimer.start();
     }
 
-    ActionListener reconnectAL = new ActionListener() {
+    private ActionListener reconnectAL = new ActionListener() {
         public void actionPerformed(ActionEvent e) {
             printAll("[" + BotCore.sdf.format(new Date()) + "] ", graphics.acebotsthree.TIMECOLOR);
-            printlnAll("[Acebots] Attempting to Reconnect", new Color(255,0,0));
+            printlnAll("[Acebots] Attempting to Reconnect", new Color(255, 0, 0));
             try {
                 String info[] = new String[4];
                 FileReader fr = new FileReader("config.txt");
                 BufferedReader reader = new BufferedReader(fr);
-                for (int i = 0; i < 4; i++)
-                {
+                for (int i = 0; i < 4; i++) {
                     try {
                         info[i] = reader.readLine().split("=", 2)[1];
                     } catch (IOException e1) {
@@ -236,9 +223,9 @@ public class BotCore extends PircBot {
         }
     };
 
-    //Begin PircBot event handlers and fire our own
-    public void onMessage(String channel, String sender, String login, String hostname, String message)
-    {
+    // Begin PircBot event handlers and fire our own
+    @Override
+    public void onMessage(String channel, String sender, String login, String hostname, String message) {
         if (sender.equalsIgnoreCase(channel.substring(1)) && message.toLowerCase().equalsIgnoreCase("!kill"))
             System.exit(-5);
         //This only gets fired for twitchnotify and other non-user messages.
@@ -254,58 +241,47 @@ public class BotCore extends PircBot {
             fire("onSubscribe", new String[]{channel, message.split(" ")[0]});
     }
 
-    protected void onJoin(String channel, String sender, String login, String hostname)
-    {
+    protected void onJoin(String channel, String sender, String login, String hostname) {
         fire("onUserJoin", new String[]{channel, sender});
     }
 
-    protected void onPart(String channel, String sender, String login, String hostname)
-    {
+    protected void onPart(String channel, String sender, String login, String hostname) {
         fire("onUserLeave", new String[]{channel, sender});
     }
 
-    protected void onMode(String channel, String sourceNick, String sourceLogin, String sourceHostname, String mode)
-    {
+    protected void onMode(String channel, String sourceNick, String sourceLogin, String sourceHostname, String mode) {
         fire("onChannelMode", new String[]{channel, sourceNick, mode});
     }
 
-    protected void onUserMode(String targetNick, String sourceNick, String sourceLogin, String sourceHostname, String mode)
-    {
-        if (mode.contains("+o"))
-        {
+    protected void onUserMode(String targetNick, String sourceNick, String sourceLogin, String sourceHostname, String mode) {
+        if (mode.contains("+o")) {
             System.out.println(mode.split(" ")[2].toLowerCase() + mode.split(" ")[0]);
             modList.add(mode.split(" ")[2].toLowerCase() + mode.split(" ")[0]);
         }
         fire("onUserMode", new String[]{targetNick, sourceNick, mode});
     }
 
-    protected void onPing(String sourceNick, String sourceLogin, String sourceHostname, String target, String pingValue)
-    {
+    protected void onPing(String sourceNick, String sourceLogin, String sourceHostname, String target, String pingValue) {
         fire("onPing", new String[]{sourceNick, target, pingValue});
     }
 
-    protected void onAction(String sender, String login, String hostname, String target, String action)
-    {
+    protected void onAction(String sender, String login, String hostname, String target, String action) {
         fire("onMe", new String[]{target, sender, action});
     }
 
-    protected void onPrivateMessage(String sender, String login, String hostname, String message)
-    {
+    protected void onPrivateMessage(String sender, String login, String hostname, String message) {
         fire("onPrivateMessage", new String[]{sender, message});
     }
 
-    protected void onNotice(String sourceNick, String sourceLogin, String sourceHostname, String target, String notice)
-    {
+    protected void onNotice(String sourceNick, String sourceLogin, String sourceHostname, String target, String notice) {
         fire("onNotice", new String[]{});
     }
 
-    protected void onTopic(String channel, String topic, String setBy, long date, boolean changed)
-    {
+    protected void onTopic(String channel, String topic, String setBy, long date, boolean changed) {
         fire("onTopic", new String[]{});
     }
 
-    protected void onOp(String channel, String sourceNick, String sourceLogin, String sourceHostname, String recipient)
-    {
+    protected void onOp(String channel, String sourceNick, String sourceLogin, String sourceHostname, String recipient) {
         fire("onOP", new String[]{});
     }
 
@@ -317,13 +293,12 @@ public class BotCore extends PircBot {
     protected void onUnknown(String line) {
 
         String[] messageInfo = line.split(" ", 5);
-        if (line.startsWith("@color"))
-        {
+        if (line.startsWith("@color")) {
             String[] newTwitchInfo = messageInfo[0].split(";");
             String userColor;
             try {
                 userColor = newTwitchInfo[0].split("=")[1];
-            }  catch (ArrayIndexOutOfBoundsException e1) {
+            } catch (ArrayIndexOutOfBoundsException e1) {
                 userColor = "#646464"; //default no specified color
             }
 
@@ -334,16 +309,13 @@ public class BotCore extends PircBot {
                 sender = messageInfo[1].split("!")[0].substring(1);
             }
 
-            if (sender.equalsIgnoreCase(this.getNick()))
-            {
-                int r,g,b;
+            if (sender.equalsIgnoreCase(this.getNick())) {
+                int r, g, b;
                 r = Integer.valueOf(userColor.substring(1, 3), 16);
                 g = Integer.valueOf(userColor.substring(3, 5), 16);
                 b = Integer.valueOf(userColor.substring(5, 7), 16);
-                botColor = new Color(r,g,b);
-            }
-            else
-            {
+                botColor = new Color(r, g, b);
+            } else {
                 //  String userEmotes = newTwitchInfo[2].split("=")[1];
                 String isSubscriber = newTwitchInfo[3].split("=")[1];
                 String isTurbo = newTwitchInfo[4].split("=")[1];
@@ -351,7 +323,7 @@ public class BotCore extends PircBot {
                 String userType;
                 try {
                     userType = newTwitchInfo[5].split("=")[1];
-                }  catch (ArrayIndexOutOfBoundsException e1) {
+                } catch (ArrayIndexOutOfBoundsException e1) {
                     userType = "user";
                 }
 
@@ -375,7 +347,7 @@ public class BotCore extends PircBot {
                     fire("onCommand", new String[]{channel, sender, "1", TRIGGER + message.split(" ", 3)[2]});
             }
         }
-            //super.handleLine(line.split(" ", 2)[1]);
+        //super.handleLine(line.split(" ", 2)[1]);
         //System.out.println("And then there was twitch.");
     }
 
@@ -391,31 +363,29 @@ public class BotCore extends PircBot {
     alMap.put("onPing", new ArrayList<ActionListener>()); */
 
     //@SuppressWarnings("ConstantConditions")
-    public void bootPluginSystem()
-    {
+    private void bootPluginSystem() {
         Class[] defaultPlugins = loadPlugins("DefaultPlugins");
-		Class[] extraPlugins = loadPlugins("Plugins");
+        Class[] extraPlugins = loadPlugins("Plugins");
         System.out.println(defaultPlugins.length + " is the default len");
 
-        for (int i = 0; i < defaultPlugins.length; i++)
-        {
-            System.out.println(defaultPlugins[i].getName() + " attempting load");
+        for (Class defaultPlugin : defaultPlugins) {
+            System.out.println(defaultPlugin.getName() + " attempting load");
             try {
-                objectMap.put(defaultPlugins[i].getName().substring(15).toLowerCase(), BotCore.class.getClassLoader().loadClass(defaultPlugins[i].getName()).getConstructor(BotCore.class).newInstance(this));
+                objectMap.put(defaultPlugin.getName().substring(15).toLowerCase(), BotCore.class.getClassLoader().loadClass(defaultPlugin.getName()).getConstructor(BotCore.class).newInstance(this));
             } catch (InstantiationException e) {
-                System.out.println("Instantiation Exception: Failed to load default plugin " + defaultPlugins[i].getName());
+                System.out.println("Instantiation Exception: Failed to load default plugin " + defaultPlugin.getName());
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
-                System.out.println("Illegal Access Exception: Failed to load default plugin " + defaultPlugins[i].getName());
+                System.out.println("Illegal Access Exception: Failed to load default plugin " + defaultPlugin.getName());
                 e.printStackTrace();
             } catch (ClassNotFoundException e) {
-                System.out.println("Class Not Found Exception: Failed to load default plugin " + defaultPlugins[i].getName() + "\nMake sure that the class exists in the right package.");
+                System.out.println("Class Not Found Exception: Failed to load default plugin " + defaultPlugin.getName() + "\nMake sure that the class exists in the right package.");
                 e.printStackTrace();
             } catch (NoSuchMethodException e) {
-                System.out.println("Failed to load default plugin " + defaultPlugins[i].getName() + "\nMake sure the plugin has a BotCore parameter constructor!\nEg. public YourClass(Botcore core){}");
+                System.out.println("Failed to load default plugin " + defaultPlugin.getName() + "\nMake sure the plugin has a BotCore parameter constructor!\nEg. public YourClass(Botcore core){}");
                 e.printStackTrace();
             } catch (InvocationTargetException e) {
-                System.out.println("Invocation Target Exception: Failed to load default plugin " + defaultPlugins[i].getName());
+                System.out.println("Invocation Target Exception: Failed to load default plugin " + defaultPlugin.getName());
                 e.printStackTrace();
             } catch (Exception e) {
                 System.out.println("Generic error: " + e.getMessage());
@@ -423,28 +393,27 @@ public class BotCore extends PircBot {
             }
         }
 
-        for (int i = 0; i < extraPlugins.length; i++)
-        {
+        for (Class extraPlugin : extraPlugins) {
             try {
-                objectMap.put(extraPlugins[i].getName().substring(8).toLowerCase(), BotCore.class.getClassLoader().loadClass(extraPlugins[i].getName()).getConstructor(BotCore.class).newInstance(this));
+                objectMap.put(extraPlugin.getName().substring(8).toLowerCase(), BotCore.class.getClassLoader().loadClass(extraPlugin.getName()).getConstructor(BotCore.class).newInstance(this));
                 //System.out.println("Mapped extra: " + extraPlugins[i].getName().substring(8).toLowerCase());
             } catch (InstantiationException e) {
-                System.out.println("Instantiation Exception: Failed to load extra plugin " + extraPlugins[i].getName());
+                System.out.println("Instantiation Exception: Failed to load extra plugin " + extraPlugin.getName());
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
-                System.out.println("Illegal Access Exception: Failed to load extra plugin " + extraPlugins[i].getName());
+                System.out.println("Illegal Access Exception: Failed to load extra plugin " + extraPlugin.getName());
                 e.printStackTrace();
             } catch (ClassNotFoundException e) {
-                System.out.println("Class Not Found Exception: Failed to load extra plugin " + extraPlugins[i].getName() + "\nMake sure that the class exists in the right package.");
+                System.out.println("Class Not Found Exception: Failed to load extra plugin " + extraPlugin.getName() + "\nMake sure that the class exists in the right package.");
                 e.printStackTrace();
             } catch (NoSuchMethodException e) {
-                System.out.println("Skipping extra plugin " + extraPlugins[i].getName() + "\nMake sure the plugin has a BotCore parameter constructor!\nEg. public YourClass(Botcore core){}");
+                System.out.println("Skipping extra plugin " + extraPlugin.getName() + "\nMake sure the plugin has a BotCore parameter constructor!\nEg. public YourClass(Botcore core){}");
                 e.printStackTrace();
             } catch (InvocationTargetException e) {
-                System.out.println("Invocation Target Exception: Failed to load extra plugin " + extraPlugins[i].getName());
+                System.out.println("Invocation Target Exception: Failed to load extra plugin " + extraPlugin.getName());
                 e.printStackTrace();
             } catch (Exception e) {
-                System.out.println("Generic Error: Failed to load extra plugin " + extraPlugins[i].getName());
+                System.out.println("Generic Error: Failed to load extra plugin " + extraPlugin.getName());
                 e.printStackTrace();
             }
         }
@@ -603,16 +572,16 @@ public class BotCore extends PircBot {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        List<File> dirs = new ArrayList<File>();
+        List<File> dirs = new ArrayList<>();
         while (resources.hasMoreElements()) {
             URL resource = resources.nextElement();
             dirs.add(new File(resource.getFile()));
         }
-        ArrayList<Class> classes = new ArrayList<Class>();
+        ArrayList<Class> classes = new ArrayList<>();
         System.out.println(dirs.size());
         for (File directory : dirs) {
             try {
-                if(BotCore.class.getClassLoader().getResource("DefaultPlugins").getPath().contains(".jar")) {
+                if (BotCore.class.getClassLoader().getResource("DefaultPlugins").getPath().contains(".jar")) {
                     classes.addAll(findJarClasses(directory, packageName));
                 } else {
                     classes.addAll(findClasses(directory, packageName));
@@ -632,7 +601,7 @@ public class BotCore extends PircBot {
         if (s.startsWith("file")) { // Linux paths fix
             s = s.substring(5);
         }
-        ArrayList<File> files = new ArrayList<File>();
+        ArrayList<File> files = new ArrayList<>();
         try {
             System.out.println("Trying to find the jar");
 //            System.out.println("path: \"" + s + "\"");
@@ -666,7 +635,7 @@ public class BotCore extends PircBot {
             ex.printStackTrace();
         }
 
-        List<Class> classes = new ArrayList<Class>();
+        List<Class> classes = new ArrayList<>();
         System.out.println("directory: " + directory.getPath());
 //        if (!directory.exists()) {
 //            System.out.println("No thing");
@@ -675,7 +644,7 @@ public class BotCore extends PircBot {
 //        File[] files = directory.listFiles();
         for (File file : files) {
             if (file.isDirectory()) {
-                assert !file.getName().contains(".");
+                assert !file.getName().contains("");
                 //classes.addAll(findClasses(file, packageName + "." + file.getName()));
             }
 //            else if (file.getName().endsWith(".class")) {
@@ -690,7 +659,7 @@ public class BotCore extends PircBot {
     }
 
     private static List<Class> findClasses(File directory, String packageName) throws ClassNotFoundException {
-        List<Class> classes = new ArrayList<Class>();
+        List<Class> classes = new ArrayList<>();
         System.out.println("directory: " + directory.getPath());
         if (!directory.exists()) {
             System.out.println("No thing");
@@ -699,7 +668,7 @@ public class BotCore extends PircBot {
         File[] files = directory.listFiles();
         for (File file : files) {
             if (file.isDirectory()) {
-                assert !file.getName().contains(".");
+                assert !file.getName().contains("");
                 //classes.addAll(findClasses(file, packageName + "." + file.getName()));
             } else if (file.getName().endsWith(".class")) {
                 if (!file.getName().contains("$")) {
@@ -711,8 +680,7 @@ public class BotCore extends PircBot {
     }
 
     @Deprecated
-    public boolean hasAccess(String channel, String user, int cReqAccess, int uReqAccess, HashMap<String, Integer> exceptionMap)
-    {
+    public boolean hasAccess(String channel, String user, int cReqAccess, int uReqAccess, HashMap<String, Integer> exceptionMap) {
         int userAccess;
         int channelAccess;
 
@@ -729,12 +697,9 @@ public class BotCore extends PircBot {
         else
             channelAccess = 1;
 
-        if (exceptionMap != null)
-        {
-            for (String chan:exceptionMap.keySet())
-            {
-                if (chan.equalsIgnoreCase(channel))
-                {
+        if (exceptionMap != null) {
+            for (String chan : exceptionMap.keySet()) {
+                if (chan.equalsIgnoreCase(channel)) {
                     cReqAccess = exceptionMap.get(chan);
                 }
             }
@@ -748,16 +713,10 @@ public class BotCore extends PircBot {
             userAccess = Math.max(4, userAccess);
 
         System.out.println("FA: " + userAccess);
-        if (userAccess >= uReqAccess && channelAccess >= cReqAccess)
-        {
-            return true;
-        }
-        else
-            return false;
+        return userAccess >= uReqAccess && channelAccess >= cReqAccess;
     }
 
-    public boolean hasAccess(String channel, String user, int cReqAccess, int uReqAccess, HashMap<String, Integer> exceptionMap, boolean isSubscriber)
-    {
+    public boolean hasAccess(String channel, String user, int cReqAccess, int uReqAccess, HashMap<String, Integer> exceptionMap, boolean isSubscriber) {
         int userAccess;
         int channelAccess;
 
@@ -774,12 +733,9 @@ public class BotCore extends PircBot {
         else
             channelAccess = 1;
 
-        if (exceptionMap != null)
-        {
-            for (String chan:exceptionMap.keySet())
-            {
-                if (chan.equalsIgnoreCase(channel))
-                {
+        if (exceptionMap != null) {
+            for (String chan : exceptionMap.keySet()) {
+                if (chan.equalsIgnoreCase(channel)) {
                     cReqAccess = exceptionMap.get(chan);
                 }
             }
@@ -794,16 +750,10 @@ public class BotCore extends PircBot {
         if (channel.substring(1).equalsIgnoreCase(user))
             userAccess = Math.max(4, userAccess);
 
-        if (userAccess >= uReqAccess && channelAccess >= cReqAccess)
-        {
-            return true;
-        }
-        else
-            return false;
+        return userAccess >= uReqAccess && channelAccess >= cReqAccess;
     }
 
-    public void loadUsers()
-    {
+    private void loadUsers() {
         userAccessMap.clear();
         String line = "";
         FileReader fr = null;
@@ -820,8 +770,7 @@ public class BotCore extends PircBot {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        do
-        {
+        do {
             try {
                 String[] temp = line.split(" ");
                 name = temp[0];
@@ -844,8 +793,7 @@ public class BotCore extends PircBot {
     }
     //Acebots raid origin detection
 
-    public String[] getCommandInfo(String commandName)
-    {
+    public String[] getCommandInfo(String commandName) {
         FileReader fr = null;
         try {
             fr = new FileReader(BotCore.CMDSFILEPATH);
@@ -860,8 +808,7 @@ public class BotCore extends PircBot {
             e.printStackTrace();
         }
 
-        do
-        {
+        do {
             try {
                 if (line.split(" ")[0].equalsIgnoreCase(commandName))
                     return line.split(" ");
@@ -871,58 +818,46 @@ public class BotCore extends PircBot {
             }
         } while (!isBlank(line));
         try {
-			buffReader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+            buffReader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
-    public int addToQueue(String channel, String message, int source)
-    {
+    public int addToQueue(String channel, String message, int source) {
         return messageQueue.addToQueue(channel, message, source);
     }
 
-    public int addToQueuePriority(String channel, String message, int source, int priority)
-    {
+    public int addToQueuePriority(String channel, String message, int source, int priority) {
         return messageQueue.addToQueuePriority(channel, message, source, priority);
     }
 
-    public boolean isMod(String channel, String user)
-    {
-        if(modList.contains(user.toLowerCase() + channel))
-            return true;
-        else
-            return false;
+    public boolean isMod(String channel, String user) {
+        return modList.contains(user.toLowerCase() + channel);
     }
 
-	public Channel getChannel(String channel) {
-		return channelMap.get(channel);
-	}
+    public Channel getChannel(String channel) {
+        return channelMap.get(channel);
+    }
 
-    public boolean botJoinChannel(String name)
-    {
+    public boolean botJoinChannel(String name) {
         if (channelMap.containsKey(name.toLowerCase()))
             return false;
-        else
-        {
+        else {
             channelMap.put(name, new Channel(name, this));
             fire("onBotJoin", new String[]{name});
             return true;
         }
     }
 
-    public boolean botLeaveChannel(String name)
-    {
-        if (channelMap.containsKey(name.toLowerCase()))
-        {
+    public boolean botLeaveChannel(String name) {
+        if (channelMap.containsKey(name.toLowerCase())) {
             try {
                 partChannel(name);
                 channelMap.remove(name);
-                for (int i = 0; i < acebotsGUI.inputTab.getTabCount(); i++)
-                {
-                    if (acebotsGUI.inputTab.getTitleAt(i).endsWith(name.replace("#", "")))
-                    {
+                for (int i = 0; i < acebotsGUI.inputTab.getTabCount(); i++) {
+                    if (acebotsGUI.inputTab.getTitleAt(i).endsWith(name.replace("#", ""))) {
                         acebotsGUI.allChatLeftPane.removeTabAt(i + 1);
                         acebotsGUI.allChatRightPane.removeTabAt(i + 1);
                         acebotsGUI.inputTab.removeTabAt(i);
@@ -931,9 +866,7 @@ public class BotCore extends PircBot {
                         return true;
                     }
                 }
-            }
-            catch (Exception e1)
-            {
+            } catch (Exception e1) {
                 e1.printStackTrace();
                 return false;
             }
@@ -941,76 +874,66 @@ public class BotCore extends PircBot {
         return false;
     }
 
-    public void createCommand(String name, int userAccess, int channelAccess)
-    {
+    public void createCommand(String name, int userAccess, int channelAccess) {
         //Coming soon Kappa//
     }
 
-    public HashMap<String, Integer> getUserAccessMap()
-    {
+    public HashMap<String, Integer> getUserAccessMap() {
         return userAccessMap;
     }
 
-    public HashMap<String, Integer> getChannelAccessMap()
-    {
+    public HashMap<String, Integer> getChannelAccessMap() {
         return channelAccessMap;
     }
 
-    public void printlnChannel(String channel, String message, Color messageColor)
-    {
-        try{
-        appendTextPane(messageColor, message + "\n", getChannel(channel).getLeftChatBox());
-        appendTextPane(messageColor, message + "\n", getChannel(channel).getRightChatBox());
-    } catch (Exception e) {
-        e.printStackTrace();
-        System.out.println("Error: " + channel);
-        System.out.println("Message: " + message);
-    }
-    }
-
-    public void printlnAll(String message, Color messageColor)
-    {
-        try{
-        appendTextPane(messageColor, message + "\n", acebotsGUI.allChatLeftBox);
-        appendTextPane(messageColor, message + "\n", acebotsGUI.allChatRightBox);
-    } catch (Exception e) {
-        e.printStackTrace();
-        System.out.println("Message: " + message);
-    }
-    }
-
-
-    public void printChannel(String channel, String message, Color messageColor)
-    {
-        try{
-            appendTextPane(messageColor, message, getChannel(channel).getLeftChatBox());
-            appendTextPane(messageColor, message, getChannel(channel).getRightChatBox());
+    public void printlnChannel(String channel, String message, Color messageColor) {
+        try {
+            appendTextPane(messageColor, message + "\n", getChannel(channel).getLeftChatBox());
+            appendTextPane(messageColor, message + "\n", getChannel(channel).getRightChatBox());
         } catch (Exception e) {
-             e.printStackTrace();
+            e.printStackTrace();
             System.out.println("Error: " + channel);
             System.out.println("Message: " + message);
         }
     }
 
-    public void printAll(String message, Color messageColor)
-    {
+    public void printlnAll(String message, Color messageColor) {
+        try {
+            appendTextPane(messageColor, message + "\n", acebotsGUI.allChatLeftBox);
+            appendTextPane(messageColor, message + "\n", acebotsGUI.allChatRightBox);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Message: " + message);
+        }
+    }
+
+
+    public void printChannel(String channel, String message, Color messageColor) {
+        try {
+            appendTextPane(messageColor, message, getChannel(channel).getLeftChatBox());
+            appendTextPane(messageColor, message, getChannel(channel).getRightChatBox());
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error: " + channel);
+            System.out.println("Message: " + message);
+        }
+    }
+
+    public void printAll(String message, Color messageColor) {
         appendTextPane(messageColor, message, acebotsGUI.allChatLeftBox);
         appendTextPane(messageColor, message, acebotsGUI.allChatRightBox);
     }
 
-    public void printTitleLine(String message, Color messageColor)
-    {
+    private void printTitleLine(String message, Color messageColor) {
         acebotsGUI.someExtraLabel.setText(message);
         acebotsGUI.someExtraLabel.setForeground(messageColor);
     }
 
-    public acebotsthree getGUI()
-    {
+    public acebotsthree getGUI() {
         return acebotsGUI;
     }
 
-    public Color getBotColor()
-    {
+    public Color getBotColor() {
         return botColor;
     }
 }

@@ -1,7 +1,6 @@
 package data;
 
 import java.util.Calendar;
-import java.util.Calendar;
 
 public class StreamStatus {
 

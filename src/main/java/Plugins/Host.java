@@ -1,7 +1,6 @@
 package Plugins;
 
 import Bot.BotCore;
-import Bot.Channel;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -20,12 +19,13 @@ public class Host {
     private BotCore acebotCore;
     private int userAccess;
     private int channelAccess;
-    private HashMap<String, Integer> accessExceptionMap = new HashMap<String,Integer>();
+    private HashMap<String, Integer> accessExceptionMap = new HashMap<String, Integer>();
     HashMap<String, Timer> channelTimerMap = new HashMap<String, Timer>();
 
-    public Host() {}
-    public Host(BotCore core)
-    {
+    public Host() {
+    }
+
+    public Host(BotCore core) {
         acebotCore = core;
         acebotCore.subscribe("onCommand", new CommandActionListener());
         acebotCore.subscribe("onLoad", new LoadActionListener());
@@ -38,7 +38,7 @@ public class Host {
         channelAccess = Integer.parseInt(cmdInfo[2]);
 
         for (int i = 3; i < cmdInfo.length; i++)
-            accessExceptionMap.put(cmdInfo[i].substring(1).toLowerCase(), Integer.parseInt(cmdInfo[i].substring(0,1)));
+            accessExceptionMap.put(cmdInfo[i].substring(1).toLowerCase(), Integer.parseInt(cmdInfo[i].substring(0, 1)));
     }
 
     private class CommandActionListener implements ActionListener {
@@ -49,25 +49,21 @@ public class Host {
             String source = args[2];
             String message = args[3];
 
-            if (isCommand("unhost", message))
-            {
-                if (acebotCore.hasAccess(channel, sender, channelAccess, userAccess, accessExceptionMap))
-                {
+            if (isCommand("unhost", message)) {
+                if (acebotCore.hasAccess(channel, sender, channelAccess, userAccess, accessExceptionMap)) {
                     acebotCore.addToQueue(channel, "/unhost", Integer.parseInt(source));
                 }
             }
 
-            if (isCommand("host", message))
-            {
+            if (isCommand("host", message)) {
                 HashMap<String, String> streamInfo = new HashMap<String, String>();
                 try {
                     URL url = new URL("https://api.twitch.tv/kraken/channels/" + channel.substring(1));
                     BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
                     String blah = reader.readLine();
-                    if(!(blah.equals("[]"))){
+                    if (!(blah.equals("[]"))) {
                         String[] data = blah.split(",\"");
-                        for (int i = 0; i < data.length; i++)
-                        {
+                        for (int i = 0; i < data.length; i++) {
                             String[] keyValue = data[i].split("\":");
                             streamInfo.put(keyValue[0].toLowerCase(), stripQuotes(keyValue[1]));
                         }
@@ -79,20 +75,15 @@ public class Host {
                     e1.printStackTrace();
                 }
 
-                if (acebotCore.hasAccess(channel, sender, channelAccess, userAccess, accessExceptionMap))
-                {
+                if (acebotCore.hasAccess(channel, sender, channelAccess, userAccess, accessExceptionMap)) {
                     String hostingTarget;
                     String[] messageArgs = message.split(" ");
                     hostingTarget = messageArgs[1];
-                    if (messageArgs.length == 3)
-                    {
-                        if (isInteger(messageArgs[2]))
-                        {
+                    if (messageArgs.length == 3) {
+                        if (isInteger(messageArgs[2])) {
                             channelTimerMap.get(channel).setInitialDelay(60000 * Integer.parseInt(messageArgs[2]));
                             channelTimerMap.get(channel).start();
-                        }
-                        else
-                        {
+                        } else {
                             //nothing yet
                         }
                     }
@@ -103,14 +94,13 @@ public class Host {
                         URL url = new URL("https://api.twitch.tv/kraken/channels/" + hostingTarget);
                         BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
                         String blah = reader.readLine();
-                        if(!(blah.equals("[]"))){
+                        if (!(blah.equals("[]"))) {
                             String[] data = blah.split(",\"");
-                            for (int i = 0; i < data.length; i++)
-                            {
+                            for (int i = 0; i < data.length; i++) {
                                 String[] keyValue = data[i].split("\":");
                                 streamInfo.put(keyValue[0].toLowerCase(), stripQuotes(keyValue[1]));
                             }
-                            acebotCore.addToQueue(channel, hostingTarget + " is playing " + streamInfo.get("game") + " : " + streamInfo.get("status") + ".", Integer.parseInt(source));
+                            acebotCore.addToQueue(channel, hostingTarget + " is playing " + streamInfo.get("game") + " : " + streamInfo.get("status") + "", Integer.parseInt(source));
                         } else {
                             acebotCore.addToQueue(channel, hostingTarget + " is currently offline.", Integer.parseInt(source));
                         }
@@ -127,8 +117,7 @@ public class Host {
 
     private class LoadActionListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            for (final String chan:acebotCore.getChannels())
-            {
+            for (final String chan : acebotCore.getChannels()) {
                 ActionListener endHostingEvent = new ActionListener() {
                     public void actionPerformed(ActionEvent e1) {
                         acebotCore.addToQueue(chan, "/unhost", 1);
@@ -146,8 +135,7 @@ public class Host {
     private class BJoinActionListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             final String chan = e.getActionCommand();
-            if (!channelTimerMap.containsKey(chan))
-            {
+            if (!channelTimerMap.containsKey(chan)) {
                 ActionListener endHostingEvent = new ActionListener() {
                     public void actionPerformed(ActionEvent e1) {
                         acebotCore.addToQueue(chan, "/unhost", 1);

@@ -2,6 +2,7 @@ package Bot;
 
 import javax.swing.*;
 import java.io.*;
+
 import static u.u.addHash;
 
 public class AcebotsIII {
@@ -73,6 +74,6 @@ public class AcebotsIII {
         }
 
         //JOptionPane.showMessageDialog(null, "Main class");
-        new BotCore(info[0], info[1], info[2], 80, info[3]);
+        new BotCore(info[0], info[1], info[2], 6667, info[3]);
     }
 }

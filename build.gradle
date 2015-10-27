@@ -1,0 +1,32 @@
+version '1.0.1-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'application'
+
+mainClassName = "Bot.AcebotsIII"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    //    compile 'pircbot:pircbot:1.5.0'
+    //    compile 'com.fasterxml.jackson.core:jackson-core:2.3.4'
+    testCompile 'junit:junit:4.12'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.5'
+}
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes "Main-Class": "$mainClassName"
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}

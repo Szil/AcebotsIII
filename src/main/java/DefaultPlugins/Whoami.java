@@ -6,7 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 
-import static u.u.*;
+import static u.u.getArgs;
+import static u.u.isCommand;
 
 public class Whoami {
 
@@ -18,10 +19,10 @@ public class Whoami {
     private HashMap<String, Integer> whoisAccessExceptionMap = new HashMap<String, Integer>();
     private BotCore acebotCore;
 
-    public Whoami() { }
+    public Whoami() {
+    }
 
-    public Whoami(BotCore core)
-    {
+    public Whoami(BotCore core) {
         acebotCore = core;
         acebotCore.subscribe("onCommand", new CommandActionListener());
         acebotCore.subscribe("onLoad", new LoadActionListener());
@@ -33,7 +34,7 @@ public class Whoami {
         //accessExceptionMap = fillAccessExceptionMap(info);
 
         for (int i = 3; i < cmdInfo.length; i++)
-            whoamiAccessExceptionMap.put(cmdInfo[i].substring(1).toLowerCase(), Integer.parseInt(cmdInfo[i].substring(0,1)));
+            whoamiAccessExceptionMap.put(cmdInfo[i].substring(1).toLowerCase(), Integer.parseInt(cmdInfo[i].substring(0, 1)));
 
         cmdInfo = acebotCore.getCommandInfo("whois");
         whoisUserAccess = Integer.parseInt(cmdInfo[1]);
@@ -42,30 +43,26 @@ public class Whoami {
         //accessExceptionMap = fillAccessExceptionMap(info);
 
         for (int i = 3; i < cmdInfo.length; i++)
-            whoisAccessExceptionMap.put(cmdInfo[i].substring(1).toLowerCase(), Integer.parseInt(cmdInfo[i].substring(0,1)));
+            whoisAccessExceptionMap.put(cmdInfo[i].substring(1).toLowerCase(), Integer.parseInt(cmdInfo[i].substring(0, 1)));
     }
 
     private class LoadActionListener implements ActionListener {
-        public void actionPerformed(ActionEvent e)
-        {
+        public void actionPerformed(ActionEvent e) {
             acebotCore.createCommand("whoami", 2, 1);
             acebotCore.createCommand("whois", 2, 1);
         }
     }
 
     private class CommandActionListener implements ActionListener {
-        public void actionPerformed(ActionEvent e)
-        {
+        public void actionPerformed(ActionEvent e) {
             String[] args = getArgs(e);
             String channel = args[0];
             String sender = args[1];
             String source = args[2];
             String message = args[3];
 
-            if (isCommand("whoami", message))
-            {
-                if (acebotCore.hasAccess(channel, sender, whoamiChannelAccess, whoamiUserAccess, whoamiAccessExceptionMap))
-                {
+            if (isCommand("whoami", message)) {
+                if (acebotCore.hasAccess(channel, sender, whoamiChannelAccess, whoamiUserAccess, whoamiAccessExceptionMap)) {
                     int userAccess;
 
                     if (acebotCore.userAccessMap.containsKey(sender.toLowerCase()))
@@ -89,21 +86,18 @@ public class Whoami {
                 }
             }
 
-            if (isCommand("whois", message))
-            {
-                if (acebotCore.hasAccess(channel, sender, whoamiChannelAccess, whoamiUserAccess, whoamiAccessExceptionMap))
-                {
+            if (isCommand("whois", message)) {
+                if (acebotCore.hasAccess(channel, sender, whoamiChannelAccess, whoamiUserAccess, whoamiAccessExceptionMap)) {
                     String target;
                     if (!message.contains(" "))
                         target = sender;
                     else
                         target = message.split(" ")[1];
-                    
+
                     int userAccess;
 
-                    if (acebotCore.channelAccessMap.containsKey(target.toLowerCase()))
-                    {
-                        acebotCore.addToQueue(channel, target + " has access level " + acebotCore.channelAccessMap.get(target.toLowerCase()) + ".", Integer.parseInt(source));
+                    if (acebotCore.channelAccessMap.containsKey(target.toLowerCase())) {
+                        acebotCore.addToQueue(channel, target + " has access level " + acebotCore.channelAccessMap.get(target.toLowerCase()) + "", Integer.parseInt(source));
                         return;
                     }
 
